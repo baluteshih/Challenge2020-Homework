@@ -93,6 +93,10 @@ class GameEngine:
                 self.timer -= 1
                 if self.timer == 0:
                     self.ev_manager.post(EventTimesUp())
+                if self.timer % Const.SWAP_TIME == 0:
+                    self.ev_manager.post(EventSwap())
+            elif cur_state == Const.STATE_STOP:
+                pass
             elif cur_state == Const.STATE_ENDGAME:
                 self.update_endgame()
 
@@ -108,9 +112,25 @@ class GameEngine:
 
         elif isinstance(event, EventPlayerMove):
             self.players[event.player_id].move_direction(event.direction)
+            if (self.players[0].position - self.players[1].position).magnitude_squared() < 4 * Const.PLAYER_RADIUS * Const.PLAYER_RADIUS:
+                self.ev_manager.post(EventCollision())
 
         elif isinstance(event, EventTimesUp):
             self.state_machine.push(Const.STATE_ENDGAME)
+
+        elif isinstance(event, EventCollision):
+            self.ev_manager.post(EventWin(int(self.players[1].attacker == 1)))
+            self.state_machine.push(Const.STATE_ENDGAME)
+
+        elif isinstance(event, EventSwap):
+            self.players[0].attacker, self.players[1].attacker = self.players[1].attacker, self.players[0].attacker
+            self.players[0].speed, self.players[1].speed = self.players[1].speed, self.players[0].speed
+
+        elif isinstance(event, EventStop):
+            self.state_machine.push(Const.STATE_STOP)
+        
+        elif isinstance(event, EventContinue):
+            self.state_machine.push(Const.STATE_PLAY)
 
     def update_menu(self):
         '''
@@ -151,6 +171,7 @@ class Player:
         self.player_id = player_id
         self.position = Const.PLAYER_INIT_POSITION[player_id] # is a pg.Vector2
         self.speed = Const.SPEED_ATTACK if player_id == 1 else Const.SPEED_DEFENSE
+        self.attacker = player_id
 
     def move_direction(self, direction: str):
         '''

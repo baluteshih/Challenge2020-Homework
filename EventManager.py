@@ -52,6 +52,23 @@ class EventInitialize(BaseEvent):
 class EventQuit(BaseEvent):
     name = 'Quit event'
 
+class EventCollision(BaseEvent):
+    name = 'Collision event'
+
+class EventWin(BaseEvent):
+    name = 'Win event'
+
+    def __init__(self, winner):
+        self.winner = winner
+
+class EventSwap(BaseEvent):
+    name = 'Swap event'
+
+class EventStop(BaseEvent):
+    name = 'Stop event'
+
+class EventContinue(BaseEvent):
+    name = 'Continue event'
 
 class EventStateChange(BaseEvent):
     name = 'StateChange event'
